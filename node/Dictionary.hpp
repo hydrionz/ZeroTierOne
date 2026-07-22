@@ -1,36 +1,18 @@
-/*
- * ZeroTier One - Network Virtualization Everywhere
- * Copyright (C) 2011-2019  ZeroTier, Inc.  https://www.zerotier.com/
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- * --
- *
- * You can be released from the requirements of the license by purchasing
- * a commercial license. Buying such a license is mandatory as soon as you
- * develop commercial closed-source software that incorporates or links
- * directly against ZeroTier software without disclosing the source code
- * of your own application.
+ * (c) ZeroTier, Inc.
+ * https://www.zerotier.com/
  */
 
 #ifndef ZT_DICTIONARY_HPP
 #define ZT_DICTIONARY_HPP
 
+#include "Address.hpp"
+#include "Buffer.hpp"
 #include "Constants.hpp"
 #include "Utils.hpp"
-#include "Buffer.hpp"
-#include "Address.hpp"
 
 #include <stdint.h>
 
@@ -58,32 +40,48 @@ namespace ZeroTier {
  *
  * @tparam C Dictionary max capacity in bytes
  */
-template<unsigned int C>
-class Dictionary
-{
-public:
-	Dictionary() { memset(_d,0,sizeof(_d)); }
-	Dictionary(const char *s) { this->load(s); }
-	Dictionary(const char *s,unsigned int len)
+template <unsigned int C> class Dictionary {
+  public:
+	Dictionary()
 	{
-		for(unsigned int i=0;i<C;++i) {
-			if ((s)&&(i < len)) {
-				if (!(_d[i] = *s))
-					s = (const char *)0;
-				else ++s;
-			} else _d[i] = (char)0;
+		memset(_d, 0, sizeof(_d));
+	}
+	Dictionary(const char* s)
+	{
+		this->load(s);
+	}
+	Dictionary(const char* s, unsigned int len)
+	{
+		for (unsigned int i = 0; i < C; ++i) {
+			if ((s) && (i < len)) {
+				if (! (_d[i] = *s)) {
+					s = (const char*)0;
+				}
+				else {
+					++s;
+				}
+			}
+			else {
+				_d[i] = (char)0;
+			}
 		}
 		_d[C - 1] = (char)0;
 	}
-	Dictionary(const Dictionary &d) { memcpy(_d,d._d,C); }
-
-	inline Dictionary &operator=(const Dictionary &d)
+	Dictionary(const Dictionary& d)
 	{
-		memcpy(_d,d._d,C);
+		memcpy(_d, d._d, C);
+	}
+
+	inline Dictionary& operator=(const Dictionary& d)
+	{
+		memcpy(_d, d._d, C);
 		return *this;
 	}
 
-	inline operator bool() const { return (_d[0] != 0); }
+	inline operator bool() const
+	{
+		return (_d[0] != 0);
+	}
 
 	/**
 	 * Load a dictionary from a C-string
@@ -91,17 +89,23 @@ public:
 	 * @param s Dictionary in string form
 	 * @return False if 's' was longer than our capacity
 	 */
-	inline bool load(const char *s)
+	inline bool load(const char* s)
 	{
-		for(unsigned int i=0;i<C;++i) {
+		for (unsigned int i = 0; i < C; ++i) {
 			if (s) {
-				if (!(_d[i] = *s))
-					s = (const char *)0;
-				else ++s;
-			} else _d[i] = (char)0;
+				if (! (_d[i] = *s)) {
+					s = (const char*)0;
+				}
+				else {
+					++s;
+				}
+			}
+			else {
+				_d[i] = (char)0;
+			}
 		}
 		_d[C - 1] = (char)0;
-		return (!s);
+		return (! s);
 	}
 
 	/**
@@ -109,7 +113,7 @@ public:
 	 */
 	inline void clear()
 	{
-		memset(_d,0,sizeof(_d));
+		memset(_d, 0, sizeof(_d));
 	}
 
 	/**
@@ -117,11 +121,12 @@ public:
 	 */
 	inline unsigned int sizeBytes() const
 	{
-		for(unsigned int i=0;i<C;++i) {
-			if (!_d[i])
+		for (unsigned int i = 0; i < C; ++i) {
+			if (! _d[i]) {
 				return i;
+			}
 		}
-		return C-1;
+		return C - 1;
 	}
 
 	/**
@@ -146,22 +151,24 @@ public:
 	 * @param destlen Size of destination buffer
 	 * @return -1 if not found, or actual number of bytes stored in dest[] minus trailing 0
 	 */
-	inline int get(const char *key,char *dest,unsigned int destlen) const
+	inline int get(const char* key, char* dest, unsigned int destlen) const
 	{
-		const char *p = _d;
-		const char *const eof = p + C;
-		const char *k;
+		const char* p = _d;
+		const char* const eof = p + C;
+		const char* k;
 		bool esc;
 		int j;
 
-		if (!destlen) // sanity check
+		if (! destlen) {   // sanity check
 			return -1;
+		}
 
 		while (*p) {
 			k = key;
-			while ((*k)&&(*p)) {
-				if (*p != *k)
+			while ((*k) && (*p)) {
+				if (*p != *k) {
 					break;
+				}
 				++k;
 				if (++p == eof) {
 					dest[0] = (char)0;
@@ -169,31 +176,43 @@ public:
 				}
 			}
 
-			if ((!*k)&&(*p == '=')) {
+			if ((! *k) && (*p == '=')) {
 				j = 0;
 				esc = false;
 				++p;
-				while ((*p != 0)&&(*p != 13)&&(*p != 10)) {
+				while ((*p != 0) && (*p != 13) && (*p != 10)) {
 					if (esc) {
 						esc = false;
-						switch(*p) {
-							case 'r': dest[j++] = 13; break;
-							case 'n': dest[j++] = 10; break;
-							case '0': dest[j++] = (char)0; break;
-							case 'e': dest[j++] = '='; break;
-							default: dest[j++] = *p; break;
+						switch (*p) {
+							case 'r':
+								dest[j++] = 13;
+								break;
+							case 'n':
+								dest[j++] = 10;
+								break;
+							case '0':
+								dest[j++] = (char)0;
+								break;
+							case 'e':
+								dest[j++] = '=';
+								break;
+							default:
+								dest[j++] = *p;
+								break;
 						}
 						if (j == (int)destlen) {
-							dest[j-1] = (char)0;
-							return j-1;
+							dest[j - 1] = (char)0;
+							return j - 1;
 						}
-					} else if (*p == '\\') {
+					}
+					else if (*p == '\\') {
 						esc = true;
-					} else {
+					}
+					else {
 						dest[j++] = *p;
 						if (j == (int)destlen) {
-							dest[j-1] = (char)0;
-							return j-1;
+							dest[j - 1] = (char)0;
+							return j - 1;
 						}
 					}
 					if (++p == eof) {
@@ -203,8 +222,9 @@ public:
 				}
 				dest[j] = (char)0;
 				return j;
-			} else {
-				while ((*p)&&(*p != 13)&&(*p != 10)) {
+			}
+			else {
+				while ((*p) && (*p != 13) && (*p != 10)) {
 					if (++p == eof) {
 						dest[0] = (char)0;
 						return -1;
@@ -216,7 +236,9 @@ public:
 						return -1;
 					}
 				}
-				else break;
+				else {
+					break;
+				}
 			}
 		}
 
@@ -232,14 +254,14 @@ public:
 	 * @return True if key was found (if false, dest will be empty)
 	 * @tparam BC Buffer capacity (usually inferred)
 	 */
-	template<unsigned int BC>
-	inline bool get(const char *key,Buffer<BC> &dest) const
+	template <unsigned int BC> inline bool get(const char* key, Buffer<BC>& dest) const
 	{
-		const int r = this->get(key,const_cast<char *>(reinterpret_cast<const char *>(dest.data())),BC);
+		const int r = this->get(key, const_cast<char*>(reinterpret_cast<const char*>(dest.data())), BC);
 		if (r >= 0) {
 			dest.setSize((unsigned int)r);
 			return true;
-		} else {
+		}
+		else {
 			dest.clear();
 			return false;
 		}
@@ -252,11 +274,12 @@ public:
 	 * @param dfl Default value if not found in dictionary
 	 * @return Boolean value of key or 'dfl' if not found
 	 */
-	bool getB(const char *key,bool dfl = false) const
+	bool getB(const char* key, bool dfl = false) const
 	{
 		char tmp[4];
-		if (this->get(key,tmp,sizeof(tmp)) >= 0)
-			return ((*tmp == '1')||(*tmp == 't')||(*tmp == 'T'));
+		if (this->get(key, tmp, sizeof(tmp)) >= 0) {
+			return ((*tmp == '1') || (*tmp == 't') || (*tmp == 'T'));
+		}
 		return dfl;
 	}
 
@@ -267,11 +290,12 @@ public:
 	 * @param dfl Default value or 0 if unspecified
 	 * @return Decoded hex UInt value or 'dfl' if not found
 	 */
-	inline uint64_t getUI(const char *key,uint64_t dfl = 0) const
+	inline uint64_t getUI(const char* key, uint64_t dfl = 0) const
 	{
 		char tmp[128];
-		if (this->get(key,tmp,sizeof(tmp)) >= 1)
+		if (this->get(key, tmp, sizeof(tmp)) >= 1) {
 			return Utils::hexStrToU64(tmp);
+		}
 		return dfl;
 	}
 
@@ -282,11 +306,12 @@ public:
 	 * @param dfl Default value or 0 if unspecified
 	 * @return Decoded hex UInt value or 'dfl' if not found
 	 */
-	inline int64_t getI(const char *key,int64_t dfl = 0) const
+	inline int64_t getI(const char* key, int64_t dfl = 0) const
 	{
 		char tmp[128];
-		if (this->get(key,tmp,sizeof(tmp)) >= 1)
+		if (this->get(key, tmp, sizeof(tmp)) >= 1) {
 			return Utils::hexStrTo64(tmp);
+		}
 		return dfl;
 	}
 
@@ -304,10 +329,10 @@ public:
 	 * @param vlen Length of value in bytes or -1 to treat value[] as a C-string and look for terminating 0
 	 * @return True if there was enough room to add this key=value pair
 	 */
-	inline bool add(const char *key,const char *value,int vlen = -1)
+	inline bool add(const char* key, const char* value, int vlen = -1)
 	{
-		for(unsigned int i=0;i<C;++i) {
-			if (!_d[i]) {
+		for (unsigned int i = 0; i < C; ++i) {
+			if (! _d[i]) {
 				unsigned int j = i;
 
 				if (j > 0) {
@@ -318,7 +343,7 @@ public:
 					}
 				}
 
-				const char *p = key;
+				const char* p = key;
 				while (*p) {
 					_d[j++] = *(p++);
 					if (j == C) {
@@ -335,8 +360,8 @@ public:
 
 				p = value;
 				int k = 0;
-				while ( ((vlen < 0)&&(*p)) || (k < vlen) ) {
-					switch(*p) {
+				while (((vlen < 0) && (*p)) || (k < vlen)) {
+					switch (*p) {
 						case 0:
 						case 13:
 						case 10:
@@ -347,12 +372,22 @@ public:
 								_d[i] = (char)0;
 								return false;
 							}
-							switch(*p) {
-								case 0: _d[j++] = '0'; break;
-								case 13: _d[j++] = 'r'; break;
-								case 10: _d[j++] = 'n'; break;
-								case '\\': _d[j++] = '\\'; break;
-								case '=': _d[j++] = 'e'; break;
+							switch (*p) {
+								case 0:
+									_d[j++] = '0';
+									break;
+								case 13:
+									_d[j++] = 'r';
+									break;
+								case 10:
+									_d[j++] = 'n';
+									break;
+								case '\\':
+									_d[j++] = '\\';
+									break;
+								case '=':
+									_d[j++] = 'e';
+									break;
 							}
 							if (j == C) {
 								_d[i] = (char)0;
@@ -382,41 +417,42 @@ public:
 	/**
 	 * Add a boolean as a '1' or a '0'
 	 */
-	inline bool add(const char *key,bool value)
+	inline bool add(const char* key, bool value)
 	{
-		return this->add(key,(value) ? "1" : "0",1);
+		return this->add(key, (value) ? "1" : "0", 1);
 	}
 
-	/** 
+	/**
 	 * Add a 64-bit integer (unsigned) as a hex value
 	 */
-	inline bool add(const char *key,uint64_t value)
+	inline bool add(const char* key, uint64_t value)
 	{
 		char tmp[32];
-		return this->add(key,Utils::hex(value,tmp),-1);
+		return this->add(key, Utils::hex(value, tmp), -1);
 	}
 
-	/** 
+	/**
 	 * Add a 64-bit integer (unsigned) as a hex value
 	 */
-	inline bool add(const char *key,int64_t value)
+	inline bool add(const char* key, int64_t value)
 	{
 		char tmp[32];
 		if (value >= 0) {
-			return this->add(key,Utils::hex((uint64_t)value,tmp),-1);
-		} else {
+			return this->add(key, Utils::hex((uint64_t)value, tmp), -1);
+		}
+		else {
 			tmp[0] = '-';
-			return this->add(key,Utils::hex((uint64_t)(value * -1),tmp+1),-1);
+			return this->add(key, Utils::hex((uint64_t)(value * -1), tmp + 1), -1);
 		}
 	}
 
-	/** 
+	/**
 	 * Add a 64-bit integer (unsigned) as a hex value
 	 */
-	inline bool add(const char *key,const Address &a)
+	inline bool add(const char* key, const Address& a)
 	{
 		char tmp[32];
-		return this->add(key,Utils::hex(a.toInt(),tmp),-1);
+		return this->add(key, Utils::hex(a.toInt(), tmp), -1);
 	}
 
 	/**
@@ -424,34 +460,42 @@ public:
 	 *
 	 * @tparam BC Buffer capacity (usually inferred)
 	 */
-	template<unsigned int BC>
-	inline bool add(const char *key,const Buffer<BC> &value)
+	template <unsigned int BC> inline bool add(const char* key, const Buffer<BC>& value)
 	{
-		return this->add(key,(const char *)value.data(),(int)value.size());
+		return this->add(key, (const char*)value.data(), (int)value.size());
 	}
 
 	/**
 	 * @param key Key to check
 	 * @return True if key is present
 	 */
-	inline bool contains(const char *key) const
+	inline bool contains(const char* key) const
 	{
 		char tmp[2];
-		return (this->get(key,tmp,2) >= 0);
+		return (this->get(key, tmp, 2) >= 0);
 	}
 
 	/**
 	 * @return Value of C template parameter
 	 */
-	inline unsigned int capacity() const { return C; }
+	inline unsigned int capacity() const
+	{
+		return C;
+	}
 
-	inline const char *data() const { return _d; }
-	inline char *unsafeData() { return _d; }
+	inline const char* data() const
+	{
+		return _d;
+	}
+	inline char* unsafeData()
+	{
+		return _d;
+	}
 
-private:
+  private:
 	char _d[C];
 };
 
-} // namespace ZeroTier
+}	// namespace ZeroTier
 
 #endif

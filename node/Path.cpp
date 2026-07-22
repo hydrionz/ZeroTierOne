@@ -1,42 +1,25 @@
-/*
- * ZeroTier One - Network Virtualization Everywhere
- * Copyright (C) 2011-2019  ZeroTier, Inc.  https://www.zerotier.com/
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- * --
- *
- * You can be released from the requirements of the license by purchasing
- * a commercial license. Buying such a license is mandatory as soon as you
- * develop commercial closed-source software that incorporates or links
- * directly against ZeroTier software without disclosing the source code
- * of your own application.
+ * (c) ZeroTier, Inc.
+ * https://www.zerotier.com/
  */
 
 #include "Path.hpp"
-#include "RuntimeEnvironment.hpp"
+
 #include "Node.hpp"
+#include "RuntimeEnvironment.hpp"
 
 namespace ZeroTier {
 
-bool Path::send(const RuntimeEnvironment *RR,void *tPtr,const void *data,unsigned int len,int64_t now)
+bool Path::send(const RuntimeEnvironment* RR, void* tPtr, const void* data, unsigned int len, int64_t now)
 {
-	if (RR->node->putPacket(tPtr,_localSocket,_addr,data,len)) {
+	if (RR->node->putPacket(tPtr, _localSocket, _addr, data, len)) {
 		_lastOut = now;
 		return true;
 	}
 	return false;
 }
 
-} // namespace ZeroTier
+}	// namespace ZeroTier
